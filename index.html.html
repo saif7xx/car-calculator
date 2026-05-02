@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حاسبة استيراد السيارات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070b14;
+    --card: #0f1623;
+    --card2: #161f30;
+    --border: #1e3358;
+    --accent: #38bdf8;
+    --accent2: #0ea5e9;
+    --accent3: #0284c7;
+    --gold: #fbbf24;
+    --red: #f87171;
+    --green: #34d399;
+    --purple: #c084fc;
+    --text: #e2eaf8;
+    --muted: #6b84a8;
+    --muted2: #4a607e;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Cairo',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background: radial-gradient(ellipse 70% 40% at 15% 10%,rgba(14,165,233,.07) 0%,transparent 65%),
+                radial-gradient(ellipse 50% 35% at 85% 85%,rgba(56,189,248,.05) 0%,transparent 60%);
+  }
+  .wrap { max-width:860px; margin:0 auto; padding:32px 16px 60px; position:relative; z-index:1; }
+
+  header { text-align:center; margin-bottom:32px; }
+  .hicon { width:62px;height:62px;background:linear-gradient(135deg,var(--accent3),var(--accent));border-radius:18px;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px;box-shadow:0 0 36px rgba(56,189,248,.22); }
+  h1 { font-size:1.85rem;font-weight:900;background:linear-gradient(90deg,var(--accent),#7dd3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:5px; }
+  .sub { color:var(--muted);font-size:.87rem; }
+
+  .stats { display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px; }
+  .stat { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 8px;text-align:center; }
+  .sv { font-size:1.05rem;font-weight:800;color:var(--accent); }
+  .sl { font-size:.7rem;color:var(--muted);margin-top:3px; }
+  .cust-stat { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center; }
+  .cust-val { font-size:1.05rem;font-weight:800;color:var(--accent);margin-bottom:3px; }
+  .cust-lbl { font-size:.7rem;color:var(--muted);margin-bottom:7px; }
+  .cust-btns { display:flex;gap:4px;justify-content:center; }
+  .cust-btn { flex:1;padding:4px 2px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-family:'Cairo',sans-serif;font-size:.68rem;font-weight:700;cursor:pointer;transition:all .2s; }
+  .cust-btn.on { background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(14,165,233,.35); }
+
+  .tabs { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:7px; }
+  .tab { padding:10px 5px;border:none;border-radius:8px;background:transparent;color:var(--muted);font-family:'Cairo',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .22s;line-height:1.45; }
+  .tab.active { background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff;box-shadow:0 3px 14px rgba(14,165,233,.4); }
+  .tab:hover:not(.active) { background:var(--card2);color:var(--text); }
+
+  .card { background:var(--card);border:1px solid var(--border);border-radius:17px;padding:24px;margin-bottom:13px; }
+  .ctitle { font-size:.93rem;font-weight:700;color:var(--accent);margin-bottom:18px;display:flex;align-items:center;gap:7px; }
+  .igrp { margin-bottom:14px; }
+  label { display:block;font-size:.8rem;color:var(--muted);margin-bottom:6px;font-weight:600; }
+  .iw { position:relative; }
+  input[type=number] { width:100%;padding:12px 18px 12px 58px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Cairo',sans-serif;font-size:1rem;font-weight:700;outline:none;transition:border-color .2s,box-shadow .2s;-moz-appearance:textfield; }
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+  input[type=number]:focus { border-color:var(--accent2);box-shadow:0 0 0 3px rgba(56,189,248,.12); }
+  .bdg { position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:.73rem;font-weight:800;color:var(--accent);background:rgba(56,189,248,.1);padding:3px 7px;border-radius:5px; }
+  .btn { width:100%;padding:13px;margin-top:5px;background:linear-gradient(135deg,var(--accent3),var(--accent));border:none;border-radius:11px;color:#fff;font-family:'Cairo',sans-serif;font-size:.97rem;font-weight:800;cursor:pointer;transition:transform .17s,box-shadow .17s;box-shadow:0 3px 16px rgba(14,165,233,.33); }
+  .btn:hover { transform:translateY(-2px);box-shadow:0 6px 24px rgba(14,165,233,.48); }
+  .btn:active { transform:translateY(0); }
+
+  .res { background:var(--card);border:1px solid var(--border);border-radius:17px;padding:22px;display:none;animation:fu .33s ease; }
+  .res.on { display:block; }
+  @keyframes fu { from{opacity:0;transform:translateY(13px)} to{opacity:1;transform:translateY(0)} }
+  .rlbl { font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:13px; }
+  .steps { display:flex;flex-direction:column;gap:7px;margin-bottom:14px; }
+  .step { display:flex;justify-content:space-between;align-items:center;padding:9px 13px;background:var(--card2);border-radius:8px;border-right:3px solid var(--border);font-size:.83rem; }
+  .step.m { border-right-color:var(--red); }
+  .step.p { border-right-color:var(--green); }
+  .step.t { border-right-color:var(--gold); }
+  .step.a { border-right-color:var(--purple); }
+  .step.s { border-right-color:var(--accent); }
+  .sl2 { color:var(--muted); }
+  .sv2 { font-weight:700;font-size:.9rem; }
+  .step.m .sv2{color:var(--red)} .step.p .sv2{color:var(--green)} .step.t .sv2{color:var(--gold)} .step.a .sv2{color:var(--purple)} .step.s .sv2{color:var(--accent)}
+  .tbox { background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(56,189,248,.06));border:1px solid rgba(56,189,248,.25);border-radius:12px;padding:17px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:15px; }
+  .tlbl { font-size:.83rem;color:var(--muted);font-weight:600; }
+  .tval { font-size:1.55rem;font-weight:900;color:var(--accent); }
+
+  .csec { border-top:1px solid var(--border);padding-top:15px; }
+  .ctit { font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:11px;display:flex;align-items:center;gap:5px; }
+  .cgrid { display:grid;grid-template-columns:repeat(4,1fr);gap:8px; }
+  .cbox { background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 6px;text-align:center;transition:border-color .2s; }
+  .cbox:hover { border-color:var(--accent2); }
+  .cf { font-size:1.15rem;margin-bottom:3px; }
+  .cn { font-size:.67rem;color:var(--muted);margin-bottom:4px;font-weight:600; }
+  .cv { font-size:.86rem;font-weight:800;color:var(--text); }
+  .cc { font-size:.63rem;color:var(--muted2);margin-top:2px; }
+  .rnote { font-size:.69rem;color:var(--muted2);text-align:center;margin-top:9px; }
+
+  .panel { display:none; } .panel.active { display:block; }
+  footer { text-align:center;color:var(--muted2);font-size:.73rem;margin-top:32px; }
+
+  @media(max-width:580px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .cgrid{grid-template-columns:repeat(2,1fr)}
+    h1{font-size:1.4rem}
+    .tabs{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="hicon">🚗</div>
+  <h1>حاسبة استيراد السيارات</h1>
+  <p class="sub">احسب التكلفة الكاملة لاستيراد سيارتك من أوروبا إلى الخليج</p>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="sv">19%</div><div class="sl">ضريبة أوروبا VAT</div></div>
+  <div class="stat"><div class="sv">3,000 €</div><div class="sl">تكلفة الشحن</div></div>
+  <div class="cust-stat">
+    <div class="cust-val" id="custDisplay">10.5%</div>
+    <div class="cust-lbl">جمارك وضرائب</div>
+    <div class="cust-btns">
+      <button class="cust-btn on" onclick="setCust(0,this)">0%</button>
+      <button class="cust-btn" onclick="setCust(5.5,this)">5.5%</button>
+      <button class="cust-btn" onclick="setCust(10.5,this)">10.5%</button>
+    </div>
+  </div>
+  <div class="stat"><div class="sv">10%</div><div class="sl">عمولة الوسيط</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="sw(0)">🏷️ سعر إجمالي<br><small>شامل VAT 19%</small></button>
+  <button class="tab" onclick="sw(1)">💰 سعر نيتو<br><small>بدون ضريبة</small></button>
+  <button class="tab" onclick="sw(2)">🤝 عبر وسيط<br><small>+ عمولة 10%</small></button>
+</div>
+
+<!-- Panel 0 -->
+<div class="panel active" id="pan0">
+  <div class="card">
+    <div class="ctitle">📌 المعادلة الأولى — السعر الإجمالي شامل ضريبة VAT 19%</div>
+    <div class="igrp">
+      <label>سعر السيارة بالإجمالي (شامل ضريبة 19%)</label>
+      <div class="iw"><input type="number" id="p0" placeholder="مثال: 100000" min="0"><span class="bdg">€ EUR</span></div>
+    </div>
+    <button class="btn" onclick="calc(0)">⚡ احسب التكلفة</button>
+  </div>
+  <div class="res" id="r0">
+    <div class="rlbl">📊 تفصيل الحساب خطوة بخطوة</div>
+    <div class="steps" id="s0"></div>
+    <div class="tbox"><span class="tlbl">💵 التكلفة الإجمالية</span><span class="tval" id="t0">—</span></div>
+    <div class="csec">
+      <div class="ctit">🌍 تحويل العملات</div>
+      <div class="cgrid" id="c0"></div>
+      <div class="rnote" id="n0"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Panel 1 -->
+<div class="panel" id="pan1">
+  <div class="card">
+    <div class="ctitle">📌 المعادلة الثانية — السعر النيتو مباشرة</div>
+    <div class="igrp">
+      <label>سعر السيارة النيتو (بدون ضريبة)</label>
+      <div class="iw"><input type="number" id="p1" placeholder="مثال: 84034" min="0"><span class="bdg">€ EUR</span></div>
+    </div>
+    <button class="btn" onclick="calc(1)">⚡ احسب التكلفة</button>
+  </div>
+  <div class="res" id="r1">
+    <div class="rlbl">📊 تفصيل الحساب خطوة بخطوة</div>
+    <div class="steps" id="s1"></div>
+    <div class="tbox"><span class="tlbl">💵 التكلفة الإجمالية</span><span class="tval" id="t1">—</span></div>
+    <div class="csec">
+      <div class="ctit">🌍 تحويل العملات</div>
+      <div class="cgrid" id="c1"></div>
+      <div class="rnote" id="n1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Panel 2 -->
+<div class="panel" id="pan2">
+  <div class="card">
+    <div class="ctitle">📌 المعادلة الثالثة — عبر وسيط (عمولة 10% من قيمة الـ VAT)</div>
+    <div class="igrp">
+      <label>سعر السيارة بالإجمالي (شامل ضريبة 19%)</label>
+      <div class="iw"><input type="number" id="p2" placeholder="مثال: 100000" min="0"><span class="bdg">€ EUR</span></div>
+    </div>
+    <button class="btn" onclick="calc(2)">⚡ احسب التكلفة مع الوسيط</button>
+  </div>
+  <div class="res" id="r2">
+    <div class="rlbl">📊 تفصيل الحساب خطوة بخطوة</div>
+    <div class="steps" id="s2"></div>
+    <div class="tbox"><span class="tlbl">💵 التكلفة الإجمالية مع الوسيط</span><span class="tval" id="t2">—</span></div>
+    <div class="csec">
+      <div class="ctit">🌍 تحويل العملات</div>
+      <div class="cgrid" id="c2"></div>
+      <div class="rnote" id="n2"></div>
+    </div>
+  </div>
+</div>
+
+<footer>حاسبة استيراد السيارات • الشحن ثابت 3,000€ • الجمارك 10.5% • VAT أوروبا 19%</footer>
+</div>
+
+<script>
+// ── Rates (fallback + live fetch) ─────────────────────────────────────────────
+// أسعار احتياطية من XE.com بتاريخ مايو 2026
+let rates = { USD:1.17209823, OMR:0.45138579, SAR:4.39568112, AED:4.30531569, QAR:4.26721555, BHD:0.44074029, KWD:0.36014126 };
+let rDate = 'تقديرية (XE.com)', fetched = false;
+let CUST_RATE = 0.105; // الجمارك الافتراضية
+
+function setCust(val, btn) {
+  CUST_RATE = val / 100;
+  document.getElementById('custDisplay').textContent = val + '%';
+  document.querySelectorAll('.cust-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  // تحديث الفوتر
+  document.querySelector('footer').textContent =
+    `حاسبة استيراد السيارات • الشحن ثابت 3,000€ • الجمارك ${val}% • VAT أوروبا 19%`;
+}
+
+async function getRates() {
+  if (fetched) return;
+  try {
+    const r = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,OMR,SAR,AED,QAR,BHD,KWD');
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    rates = d.rates; rDate = d.date || 'حديثة'; fetched = true;
+  } catch { rDate = 'تقديرية'; }
+}
+getRates();
+
+const CURS = [
+  {code:'OMR',name:'ريال عماني',  flag:'🇴🇲',d:3},
+  {code:'SAR',name:'ريال سعودي',  flag:'🇸🇦',d:2},
+  {code:'AED',name:'درهم إماراتي',flag:'🇦🇪',d:2},
+  {code:'QAR',name:'ريال قطري',   flag:'🇶🇦',d:2},
+  {code:'BHD',name:'دينار بحريني',flag:'🇧🇭',d:3},
+  {code:'KWD',name:'دينار كويتي', flag:'🇰🇼',d:3},
+  {code:'USD',name:'دولار أمريكي',flag:'🇺🇸',d:2},
+  {code:'EUR',name:'يورو',         flag:'🇪🇺',d:2},
+];
+
+const f = (n,d=2) => n.toLocaleString('en',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fe = n => f(n) + ' €';
+const row = (l,v,c='') => `<div class="step ${c}"><span class="sl2">${l}</span><span class="sv2">${v}</span></div>`;
+
+function sw(i) {
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+}
+
+async function calc(m) {
+  const inp = document.getElementById('p'+m);
+  const price = parseFloat(inp.value);
+  if (!price || price <= 0) {
+    inp.style.borderColor='var(--red)'; inp.focus();
+    setTimeout(()=>inp.style.borderColor='',1500); return;
+  }
+  await getRates();
+
+  const SHIP=3000, VAT=0.19, CUST=CUST_RATE, AGENT=0.10;
+  let html='', total=0;
+
+  if (m===0) {
+    // سعر إجمالي → ناقص 19% → + شحن → + 10.5%
+    const vatAmt  = price * VAT / (1+VAT);
+    const neto    = price - vatAmt;
+    const after   = neto + SHIP;
+    const cust    = after * CUST;
+    total = after + cust;
+    html += row('السعر الإجمالي المدخل', fe(price));
+    html += row('خصم ضريبة VAT 19%', '- '+fe(vatAmt), 'm');
+    html += row('سعر النيتو', fe(neto), 's');
+    html += row('إضافة الشحن', '+ '+fe(SHIP), 'p');
+    html += row('المجموع قبل الجمارك', fe(after));
+    html += row('الجمارك والضرائب 10.5%', '+ '+fe(cust), 't');
+
+  } else if (m===1) {
+    // سعر نيتو مباشرة → + شحن → + 10.5%
+    const after = price + SHIP;
+    const cust  = after * CUST;
+    total = after + cust;
+    html += row('سعر النيتو المدخل', fe(price), 's');
+    html += row('إضافة الشحن', '+ '+fe(SHIP), 'p');
+    html += row('المجموع قبل الجمارك', fe(after));
+    html += row('الجمارك والضرائب 10.5%', '+ '+fe(cust), 't');
+
+  } else {
+    // عبر وسيط: سعر إجمالي → ناقص 19% → + شحن → + 10.5% → + 10% من قيمة الـ VAT
+    const vatAmt   = price * VAT / (1+VAT);   // مبلغ الـ 19%
+    const neto     = price - vatAmt;
+    const agentAmt = vatAmt * AGENT;           // ← 10% من مبلغ الـ VAT فقط
+    const after    = neto + SHIP;
+    const cust     = after * CUST;
+    total = after + cust + agentAmt;
+    html += row('السعر الإجمالي المدخل', fe(price));
+    html += row('خصم ضريبة VAT 19%', '- '+fe(vatAmt), 'm');
+    html += row('سعر النيتو', fe(neto), 's');
+    html += row('إضافة الشحن', '+ '+fe(SHIP), 'p');
+    html += row('المجموع قبل الجمارك', fe(after));
+    html += row('الجمارك والضرائب 10.5%', '+ '+fe(cust), 't');
+    html += row(`عمولة الوسيط 10% من قيمة VAT (${fe(vatAmt)})`, '+ '+fe(agentAmt), 'a');
+  }
+
+  document.getElementById('s'+m).innerHTML = html;
+  document.getElementById('t'+m).textContent = fe(total);
+
+  // Currency grid
+  document.getElementById('c'+m).innerHTML = CURS.map(c => {
+    const r = c.code==='EUR' ? 1 : (rates[c.code]||null);
+    const v = r ? f(total*r,c.d)+' '+c.code : '—';
+    const rr = (r && c.code!=='EUR') ? '1€ = '+f(r,c.d) : '';
+    return `<div class="cbox"><div class="cf">${c.flag}</div><div class="cn">${c.name}</div><div class="cv">${v}</div><div class="cc">${rr}</div></div>`;
+  }).join('');
+
+  document.getElementById('n'+m).textContent = `أسعار الصرف ${rDate} • للاستئناس فقط، قد تختلف عن أسعار البنوك`;
+
+  const rc = document.getElementById('r'+m);
+  rc.classList.remove('on');
+  requestAnimationFrame(() => rc.classList.add('on'));
+}
+
+document.querySelectorAll('input').forEach((inp,i)=>{
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') calc(i); });
+});
+</script>
+</body>
+</html>
