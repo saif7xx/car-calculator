@@ -244,13 +244,10 @@ footer{text-align:center;color:var(--muted2);font-size:.73rem;margin-top:32px;pa
 </div>
 
 <script>
-// ── Rates (fallback + live fetch) ─────────────────────────────────────────────
-// أسعار احتياطية من XE.com بتاريخ مايو 2026
-let rates = { USD:1.17209823, OMR:0.45138579, SAR:4.39568112, AED:4.30531569, QAR:4.26721555, BHD:0.44074029, KWD:0.36014126 };
-let rDate = 'تقديرية (XE.com)', fetched = false;
+// ── Rates — 3 APIs fallback ───────────────────────────────────────────────────
 let CUST_RATE = 0.105;
-let PROFIT_RATE = 0.03; // 3% من النيتو افتراضي
-let lastResults = [null, null, null]; // نحفظ {total, neto} لكل معادلة
+let PROFIT_RATE = 0.03;
+let lastResults = [null, null, null];
 
 function setCust(val, btn) {
   CUST_RATE = val / 100;
@@ -300,14 +297,55 @@ function updateCurrencyGrid(m, amount) {
   }).join('');
 }
 
+// ── Rates — 3 APIs fallback ───────────────────────────────────────────────────
+let rates = { USD:1.17209823, OMR:0.45138579, SAR:4.39568112, AED:4.30531569, QAR:4.26721555, BHD:0.44074029, KWD:0.36014126 };
+let rDate = '...جاري التحديث', fetched = false;
+
+function showRateStatus(msg, color='#888') {
+  document.querySelectorAll('.rnote').forEach(el => {
+    el.innerHTML = `<span style="color:${color};font-size:.7rem">${msg}</span>`;
+  });
+}
+
 async function getRates() {
   if (fetched) return;
+
+  // API 1: Frankfurter — البنك المركزي الأوروبي
   try {
     const r = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,OMR,SAR,AED,QAR,BHD,KWD');
     if (!r.ok) throw 0;
     const d = await r.json();
-    rates = d.rates; rDate = d.date || 'حديثة'; fetched = true;
-  } catch { rDate = 'تقديرية'; }
+    if (d.rates && d.rates.USD) {
+      rates = d.rates; rDate = d.date || 'اليوم'; fetched = true;
+      showRateStatus(`✅ أسعار حقيقية محدّثة — ${rDate}`, '#22c55e'); return;
+    }
+  } catch {}
+
+  // API 2: Open ER API
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/EUR');
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    if (d.rates && d.rates.USD) {
+      rates = { USD:d.rates.USD, OMR:d.rates.OMR, SAR:d.rates.SAR, AED:d.rates.AED, QAR:d.rates.QAR, BHD:d.rates.BHD, KWD:d.rates.KWD };
+      rDate = 'اليوم'; fetched = true;
+      showRateStatus(`✅ أسعار حقيقية محدّثة — ${rDate}`, '#22c55e'); return;
+    }
+  } catch {}
+
+  // API 3: ExchangeRate.host
+  try {
+    const r = await fetch('https://api.exchangerate.host/latest?base=EUR&symbols=USD,OMR,SAR,AED,QAR,BHD,KWD');
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    if (d.rates && d.rates.USD) {
+      rates = d.rates; rDate = d.date || 'اليوم'; fetched = true;
+      showRateStatus(`✅ أسعار حقيقية محدّثة — ${rDate}`, '#22c55e'); return;
+    }
+  } catch {}
+
+  // فشل الكل
+  showRateStatus('⚠️ أسعار تقديرية — تحقق من الاتصال', '#f59e0b');
 }
 getRates();
 
