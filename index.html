@@ -47,6 +47,17 @@
   .cust-btn { flex:1;padding:4px 2px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-family:'Cairo',sans-serif;font-size:.68rem;font-weight:700;cursor:pointer;transition:all .2s; }
   .cust-btn.on { background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(14,165,233,.35); }
 
+  /* profit bar */
+  .profit-bar { display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;margin-bottom:16px;gap:12px; }
+  .profit-lbl { font-size:.82rem;color:var(--muted);font-weight:600; }
+  .profit-btns { display:flex;gap:6px; }
+  .profit-btn { padding:6px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-family:'Cairo',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .2s; }
+  .profit-btn.on { background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;border-color:transparent;box-shadow:0 2px 10px rgba(34,197,94,.35); }
+  /* profit result box */
+  .pbox { background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(21,128,61,.06));border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:10px; }
+  .plbl { font-size:.82rem;color:var(--muted);font-weight:600; }
+  .pval { font-size:1.3rem;font-weight:900;color:#4ade80; }
+
   .tabs { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:7px; }
   .tab { padding:10px 5px;border:none;border-radius:8px;background:transparent;color:var(--muted);font-family:'Cairo',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .22s;line-height:1.45; }
   .tab.active { background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff;box-shadow:0 3px 14px rgba(14,165,233,.4); }
@@ -116,7 +127,7 @@
 
 <div class="stats">
   <div class="stat"><div class="sv">19%</div><div class="sl">ضريبة أوروبا VAT</div></div>
-  <div class="stat"><div class="sv">3,000 €</div><div class="sl">تكلفة الشحن</div></div>
+  <div class="stat"><div class="sv">4,000 €</div><div class="sl">تكلفة الشحن</div></div>
   <div class="cust-stat">
     <div class="cust-val" id="custDisplay">10.5%</div>
     <div class="cust-lbl">جمارك وضرائب</div>
@@ -127,6 +138,15 @@
     </div>
   </div>
   <div class="stat"><div class="sv">10%</div><div class="sl">عمولة الوسيط</div></div>
+</div>
+
+<!-- Profit selector row -->
+<div class="profit-bar">
+  <span class="profit-lbl">💰 هامش الربح (3% من النيتو):</span>
+  <div class="profit-btns">
+    <button class="profit-btn" onclick="setProfit(0,this)">بدون ربح</button>
+    <button class="profit-btn on" onclick="setProfit(3,this)">3% ربح</button>
+  </div>
 </div>
 
 <div class="tabs">
@@ -149,6 +169,7 @@
     <div class="rlbl">📊 تفصيل الحساب خطوة بخطوة</div>
     <div class="steps" id="s0"></div>
     <div class="tbox"><span class="tlbl">💵 التكلفة الإجمالية</span><span class="tval" id="t0">—</span></div>
+    <div class="pbox" id="pb0" style="display:none"><span class="plbl">🏷️ سعر البيع مع الربح</span><span class="pval" id="pv0">—</span></div>
     <div class="csec">
       <div class="ctit">🌍 تحويل العملات</div>
       <div class="cgrid" id="c0"></div>
@@ -171,6 +192,7 @@
     <div class="rlbl">📊 تفصيل الحساب خطوة بخطوة</div>
     <div class="steps" id="s1"></div>
     <div class="tbox"><span class="tlbl">💵 التكلفة الإجمالية</span><span class="tval" id="t1">—</span></div>
+    <div class="pbox" id="pb1" style="display:none"><span class="plbl">🏷️ سعر البيع مع الربح</span><span class="pval" id="pv1">—</span></div>
     <div class="csec">
       <div class="ctit">🌍 تحويل العملات</div>
       <div class="cgrid" id="c1"></div>
@@ -193,6 +215,7 @@
     <div class="rlbl">📊 تفصيل الحساب خطوة بخطوة</div>
     <div class="steps" id="s2"></div>
     <div class="tbox"><span class="tlbl">💵 التكلفة الإجمالية مع الوسيط</span><span class="tval" id="t2">—</span></div>
+    <div class="pbox" id="pb2" style="display:none"><span class="plbl">🏷️ سعر البيع مع الربح</span><span class="pval" id="pv2">—</span></div>
     <div class="csec">
       <div class="ctit">🌍 تحويل العملات</div>
       <div class="cgrid" id="c2"></div>
@@ -201,7 +224,7 @@
   </div>
 </div>
 
-<footer>حاسبة استيراد السيارات • الشحن ثابت 3,000€ • الجمارك 10.5% • VAT أوروبا 19%</footer>
+<footer>حاسبة استيراد السيارات • الشحن ثابت 4,000€ • الجمارك 10.5% • VAT أوروبا 19%</footer>
 </div>
 
 <script>
@@ -209,16 +232,56 @@
 // أسعار احتياطية من XE.com بتاريخ مايو 2026
 let rates = { USD:1.17209823, OMR:0.45138579, SAR:4.39568112, AED:4.30531569, QAR:4.26721555, BHD:0.44074029, KWD:0.36014126 };
 let rDate = 'تقديرية (XE.com)', fetched = false;
-let CUST_RATE = 0.105; // الجمارك الافتراضية
+let CUST_RATE = 0.105;
+let PROFIT_RATE = 0.03; // 3% من النيتو افتراضي
+let lastResults = [null, null, null]; // نحفظ {total, neto} لكل معادلة
 
 function setCust(val, btn) {
   CUST_RATE = val / 100;
   document.getElementById('custDisplay').textContent = val + '%';
   document.querySelectorAll('.cust-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  // تحديث الفوتر
   document.querySelector('footer').textContent =
-    `حاسبة استيراد السيارات • الشحن ثابت 3,000€ • الجمارك ${val}% • VAT أوروبا 19%`;
+    `حاسبة استيراد السيارات • الشحن ثابت 4,000€ • الجمارك ${val}% • VAT أوروبا 19%`;
+}
+
+function setProfit(val, btn) {
+  PROFIT_RATE = val / 100;
+  document.querySelectorAll('.profit-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  [0,1,2].forEach(m => {
+    if (lastResults[m]) updateProfitBox(m, lastResults[m].total, lastResults[m].neto);
+  });
+}
+
+function updateProfitBox(m, total, neto) {
+  const pb = document.getElementById('pb'+m);
+  const pv = document.getElementById('pv'+m);
+  pb.style.background = '';
+  pb.style.borderColor = '';
+  pv.style.color = '';
+
+  if (PROFIT_RATE > 0) {
+    const profit    = neto * PROFIT_RATE;
+    const sellPrice = total + profit;
+    pb.style.display = 'flex';
+    pv.textContent = fe(sellPrice) + `  (+${fe(profit)} ربح)`;
+    updateCurrencyGrid(m, sellPrice);
+  } else {
+    pb.style.display = 'none';
+    updateCurrencyGrid(m, total);
+  }
+}
+
+function updateCurrencyGrid(m, amount) {
+  const grid = document.getElementById('c'+m);
+  if (!grid) return;
+  grid.innerHTML = CURS.map(c => {
+    const r = c.code==='EUR' ? 1 : (rates[c.code]||null);
+    const v = r ? f(amount*r,c.d)+' '+c.code : '—';
+    const rr = (r && c.code!=='EUR') ? '1€ = '+f(r,c.d) : '';
+    return `<div class="cbox"><div class="cf">${c.flag}</div><div class="cn">${c.name}</div><div class="cv">${v}</div><div class="cc">${rr}</div></div>`;
+  }).join('');
 }
 
 async function getRates() {
@@ -261,60 +324,58 @@ async function calc(m) {
   }
   await getRates();
 
-  const SHIP=3000, VAT=0.19, CUST=CUST_RATE, AGENT=0.10;
-  let html='', total=0;
+  const SHIP=4000, VAT=0.19, CUST=CUST_RATE, AGENT=0.10;
+  const omrRate = rates['OMR'] || 0.45138579;
+  const expenses = 300 / omrRate; // 300 ريال عماني بالـ يورو
+  let html='', total=0, neto=0;
 
   if (m===0) {
-    // سعر إجمالي → ناقص 19% → + شحن → + 10.5%
     const vatAmt  = price * VAT / (1+VAT);
-    const neto    = price - vatAmt;
+    neto    = price - vatAmt;
     const after   = neto + SHIP;
     const cust    = after * CUST;
-    total = after + cust;
+    total = after + cust + expenses;
     html += row('السعر الإجمالي المدخل', fe(price));
     html += row('خصم ضريبة VAT 19%', '- '+fe(vatAmt), 'm');
     html += row('سعر النيتو', fe(neto), 's');
     html += row('إضافة الشحن', '+ '+fe(SHIP), 'p');
     html += row('المجموع قبل الجمارك', fe(after));
-    html += row('الجمارك والضرائب 10.5%', '+ '+fe(cust), 't');
+    html += row(`الجمارك والضرائب ${CUST_RATE*100}%`, '+ '+fe(cust), 't');
+    html += row(`مصاريف أخرى (300 ر.ع = ${fe(expenses)})`, '+ '+fe(expenses), 'a');
 
   } else if (m===1) {
-    // سعر نيتو مباشرة → + شحن → + 10.5%
-    const after = price + SHIP;
+    neto = price;
+    const after = neto + SHIP;
     const cust  = after * CUST;
-    total = after + cust;
-    html += row('سعر النيتو المدخل', fe(price), 's');
+    total = after + cust + expenses;
+    html += row('سعر النيتو المدخل', fe(neto), 's');
     html += row('إضافة الشحن', '+ '+fe(SHIP), 'p');
     html += row('المجموع قبل الجمارك', fe(after));
-    html += row('الجمارك والضرائب 10.5%', '+ '+fe(cust), 't');
+    html += row(`الجمارك والضرائب ${CUST_RATE*100}%`, '+ '+fe(cust), 't');
+    html += row(`مصاريف أخرى (300 ر.ع = ${fe(expenses)})`, '+ '+fe(expenses), 'a');
 
   } else {
-    // عبر وسيط: سعر إجمالي → ناقص 19% → + شحن → + 10.5% → + 10% من قيمة الـ VAT
-    const vatAmt   = price * VAT / (1+VAT);   // مبلغ الـ 19%
-    const neto     = price - vatAmt;
-    const agentAmt = vatAmt * AGENT;           // ← 10% من مبلغ الـ VAT فقط
+    const vatAmt   = price * VAT / (1+VAT);
+    neto     = price - vatAmt;
+    const agentAmt = vatAmt * AGENT;
     const after    = neto + SHIP;
     const cust     = after * CUST;
-    total = after + cust + agentAmt;
+    total = after + cust + agentAmt + expenses;
     html += row('السعر الإجمالي المدخل', fe(price));
     html += row('خصم ضريبة VAT 19%', '- '+fe(vatAmt), 'm');
     html += row('سعر النيتو', fe(neto), 's');
     html += row('إضافة الشحن', '+ '+fe(SHIP), 'p');
     html += row('المجموع قبل الجمارك', fe(after));
-    html += row('الجمارك والضرائب 10.5%', '+ '+fe(cust), 't');
+    html += row(`الجمارك والضرائب ${CUST_RATE*100}%`, '+ '+fe(cust), 't');
     html += row(`عمولة الوسيط 10% من قيمة VAT (${fe(vatAmt)})`, '+ '+fe(agentAmt), 'a');
+    html += row(`مصاريف أخرى (300 ر.ع = ${fe(expenses)})`, '+ '+fe(expenses), 'a');
   }
+
+  lastResults[m] = {total, neto};
 
   document.getElementById('s'+m).innerHTML = html;
   document.getElementById('t'+m).textContent = fe(total);
-
-  // Currency grid
-  document.getElementById('c'+m).innerHTML = CURS.map(c => {
-    const r = c.code==='EUR' ? 1 : (rates[c.code]||null);
-    const v = r ? f(total*r,c.d)+' '+c.code : '—';
-    const rr = (r && c.code!=='EUR') ? '1€ = '+f(r,c.d) : '';
-    return `<div class="cbox"><div class="cf">${c.flag}</div><div class="cn">${c.name}</div><div class="cv">${v}</div><div class="cc">${rr}</div></div>`;
-  }).join('');
+  updateProfitBox(m, total, neto); // هذا يحدث العملات بسعر البيع تلقائياً
 
   document.getElementById('n'+m).textContent = `أسعار الصرف ${rDate} • للاستئناس فقط، قد تختلف عن أسعار البنوك`;
 
