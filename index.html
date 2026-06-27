@@ -297,8 +297,9 @@ function updateCurrencyGrid(m, amount) {
   }).join('');
 }
 
-// ── Rates — 3 APIs fallback ───────────────────────────────────────────────────
-let rates = { USD:1.17209823, OMR:0.45138579, SAR:4.39568112, AED:4.30531569, QAR:4.26721555, BHD:0.44074029, KWD:0.36014126 };
+// ── Rates — 4 APIs fallback + auto-refresh ────────────────────────────────────
+const KEYS = ['USD','OMR','SAR','AED','QAR','BHD','KWD'];
+let rates = { USD:1.1421, OMR:0.43838, SAR:4.2829, AED:4.1933, QAR:4.1578, BHD:0.43043, KWD:0.35012 };
 let rDate = '...جاري التحديث', fetched = false;
 
 function showRateStatus(msg, color='#888') {
@@ -307,47 +308,100 @@ function showRateStatus(msg, color='#888') {
   });
 }
 
-async function getRates() {
-  if (fetched) return;
+function pick(obj) {
+  const out = {};
+  KEYS.forEach(k => { if (obj[k] != null) out[k] = obj[k]; });
+  return Object.keys(out).length === KEYS.length ? out : null;
+}
 
-  // API 1: Frankfurter — البنك المركزي الأوروبي
+let rSource = '';
+
+async function fetchRates() {
+  // API 1: fxratesapi — الأقرب لأسعار xe.com
   try {
-    const r = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,OMR,SAR,AED,QAR,BHD,KWD');
+    const r = await fetch('https://api.fxratesapi.com/latest?base=EUR&currencies=' + KEYS.join(',') + '&resolution=1m&amount=1&places=8&format=json');
     if (!r.ok) throw 0;
     const d = await r.json();
-    if (d.rates && d.rates.USD) {
-      rates = d.rates; rDate = d.date || 'اليوم'; fetched = true;
-      showRateStatus(`✅ أسعار حقيقية محدّثة — ${rDate}`, '#22c55e'); return;
+    const p = pick(d.rates || {});
+    if (p) { rates = p; rDate = d.date ? d.date.slice(0,10) : new Date().toISOString().slice(0,10); rSource='fxratesapi'; return true; }
+  } catch {}
+
+  // API 2: fawazahmed0 — مجاني بالكامل، بدون مفتاح، دقيق
+  try {
+    const r = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json');
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    const sub = d?.eur;
+    if (sub) {
+      const mapped = {};
+      KEYS.forEach(k => { if (sub[k.toLowerCase()] != null) mapped[k] = sub[k.toLowerCase()]; });
+      if (Object.keys(mapped).length === KEYS.length) {
+        rates = mapped;
+        rDate = d.date || new Date().toISOString().slice(0,10);
+        rSource = 'fawazahmed0';
+        return true;
+      }
     }
   } catch {}
 
-  // API 2: Open ER API
+  // API 3: Frankfurter — البنك المركزي الأوروبي (ECB)
+  try {
+    const r = await fetch('https://api.frankfurter.app/latest?from=EUR&to=' + KEYS.join(','));
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    const p = pick(d.rates || {});
+    if (p) { rates = p; rDate = d.date || new Date().toISOString().slice(0,10); rSource='Frankfurter (ECB)'; return true; }
+  } catch {}
+
+  // API 4: Open Exchange Rates
   try {
     const r = await fetch('https://open.er-api.com/v6/latest/EUR');
     if (!r.ok) throw 0;
     const d = await r.json();
-    if (d.rates && d.rates.USD) {
-      rates = { USD:d.rates.USD, OMR:d.rates.OMR, SAR:d.rates.SAR, AED:d.rates.AED, QAR:d.rates.QAR, BHD:d.rates.BHD, KWD:d.rates.KWD };
-      rDate = 'اليوم'; fetched = true;
-      showRateStatus(`✅ أسعار حقيقية محدّثة — ${rDate}`, '#22c55e'); return;
-    }
+    const p = pick(d.rates || {});
+    if (p) { rates = p; rDate = new Date().toISOString().slice(0,10); rSource='open.er-api'; return true; }
   } catch {}
 
-  // API 3: ExchangeRate.host
+  // API 4: fawazahmed0 fallback URL
   try {
-    const r = await fetch('https://api.exchangerate.host/latest?base=EUR&symbols=USD,OMR,SAR,AED,QAR,BHD,KWD');
+    const r = await fetch('https://latest.currency-api.pages.dev/v1/currencies/eur.json');
     if (!r.ok) throw 0;
     const d = await r.json();
-    if (d.rates && d.rates.USD) {
-      rates = d.rates; rDate = d.date || 'اليوم'; fetched = true;
-      showRateStatus(`✅ أسعار حقيقية محدّثة — ${rDate}`, '#22c55e'); return;
+    const sub = d?.eur;
+    if (sub) {
+      const mapped = {};
+      KEYS.forEach(k => { if (sub[k.toLowerCase()] != null) mapped[k] = sub[k.toLowerCase()]; });
+      if (Object.keys(mapped).length === KEYS.length) {
+        rates = mapped;
+        rDate = d.date || new Date().toISOString().slice(0,10);
+        return true;
+      }
     }
   } catch {}
 
-  // فشل الكل
-  showRateStatus('⚠️ أسعار تقديرية — تحقق من الاتصال', '#f59e0b');
+  return false;
 }
+
+async function getRates(force=false) {
+  if (fetched && !force) return;
+  showRateStatus('🔄 جاري تحديث أسعار الصرف...', '#888');
+  const ok = await fetchRates();
+  if (ok) {
+    fetched = true;
+    const now = new Date().toLocaleTimeString('ar-OM',{hour:'2-digit',minute:'2-digit'});
+    showRateStatus(`✅ أسعار محدّثة — ${rDate} — المصدر: ${rSource} — آخر تحديث ${now} • 1€ = ${rates.OMR?.toFixed(8)} OMR`, '#22c55e');
+    // إعادة حساب أي نتيجة مفتوحة بالأسعار الجديدة
+    [0,1,2].forEach(m => {
+      if (lastResults[m]) updateProfitBox(m, lastResults[m].total, lastResults[m].neto);
+    });
+  } else {
+    showRateStatus('⚠️ أسعار تقديرية — تعذّر الاتصال', '#f59e0b');
+  }
+}
+
 getRates();
+// تحديث تلقائي كل 5 دقائق
+setInterval(() => getRates(true), 5 * 60 * 1000);
 
 const CURS = [
   {code:'OMR',name:'ريال عماني',  flag:'🇴🇲',d:3},
