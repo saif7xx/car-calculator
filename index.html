@@ -332,13 +332,7 @@ async function tryFawaz(url, label) {
 }
 
 async function fetchRates() {
-  // API 1: fawazahmed0 (pages.dev) — مطابق لأسعار xe.com
-  try { if (await tryFawaz('https://latest.currency-api.pages.dev/v1/currencies/eur.min.json', 'fawazahmed0')) return true; } catch {}
-
-  // API 2: fawazahmed0 (jsdelivr) — نفس المصدر، رابط بديل
-  try { if (await tryFawaz('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.min.json', 'fawazahmed0-cdn')) return true; } catch {}
-
-  // API 3: fxratesapi
+  // API 1: fxratesapi — يتحدث كل دقيقة، الأقرب لأسعار xe.com اللحظية
   try {
     const r = await fetch('https://api.fxratesapi.com/latest?base=EUR&currencies=' + KEYS.join(',') + '&resolution=1m&amount=1&places=8&format=json');
     if (!r.ok) throw 0;
@@ -346,6 +340,12 @@ async function fetchRates() {
     const p = pick(d.rates || {});
     if (p) { rates = p; rDate = d.date ? d.date.slice(0,10) : new Date().toISOString().slice(0,10); rSource='fxratesapi'; return true; }
   } catch {}
+
+  // API 2: fawazahmed0 (pages.dev) — يتحدث يومياً
+  try { if (await tryFawaz('https://latest.currency-api.pages.dev/v1/currencies/eur.min.json', 'fawazahmed0')) return true; } catch {}
+
+  // API 3: fawazahmed0 (jsdelivr) — نفس المصدر، رابط بديل
+  try { if (await tryFawaz('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.min.json', 'fawazahmed0-cdn')) return true; } catch {}
 
   // API 4: Open Exchange Rates
   try {
