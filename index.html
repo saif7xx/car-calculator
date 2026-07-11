@@ -331,36 +331,49 @@ async function tryFawaz(url, label) {
   return true;
 }
 
+async function fetchJson(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw 0;
+  return r.json();
+}
+
+// يجيب الأسعار من 3 مصادر بالتوازي وياخذ متوسطها — أدق من أي مصدر لحاله
 async function fetchRates() {
-  // API 1: fxratesapi — يتحدث كل دقيقة، الأقرب لأسعار xe.com اللحظية
-  try {
-    const r = await fetch('https://api.fxratesapi.com/latest?base=EUR&currencies=' + KEYS.join(',') + '&resolution=1m&amount=1&places=8&format=json');
-    if (!r.ok) throw 0;
-    const d = await r.json();
-    const p = pick(d.rates || {});
-    if (p) { rates = p; rDate = d.date ? d.date.slice(0,10) : new Date().toISOString().slice(0,10); rSource='fxratesapi'; return true; }
-  } catch {}
+  const results = await Promise.allSettled([
+    fetchJson('https://api.fxratesapi.com/latest?base=EUR&currencies=' + KEYS.join(',') + '&resolution=1m&amount=1&places=8&format=json')
+      .then(d => pick(d.rates || {})),
+    fetchJson('https://open.er-api.com/v6/latest/EUR')
+      .then(d => pick(d.rates || {})),
+    fetchJson('https://latest.currency-api.pages.dev/v1/currencies/eur.min.json')
+      .then(d => {
+        const sub = d?.eur;
+        if (!sub) return null;
+        const m = {};
+        KEYS.forEach(k => { if (sub[k.toLowerCase()] != null) m[k] = sub[k.toLowerCase()]; });
+        return Object.keys(m).length === KEYS.length ? m : null;
+      })
+  ]);
 
-  // API 2: fawazahmed0 (pages.dev) — يتحدث يومياً
-  try { if (await tryFawaz('https://latest.currency-api.pages.dev/v1/currencies/eur.min.json', 'fawazahmed0')) return true; } catch {}
+  const ok = results.filter(s => s.status === 'fulfilled' && s.value).map(s => s.value);
 
-  // API 3: fawazahmed0 (jsdelivr) — نفس المصدر، رابط بديل
+  if (ok.length) {
+    const avg = {};
+    KEYS.forEach(k => {
+      const vals = ok.map(o => o[k]).filter(v => v != null);
+      avg[k] = vals.reduce((a,b) => a+b, 0) / vals.length;
+    });
+    rates = avg;
+    rDate = new Date().toISOString().slice(0,10);
+    rSource = 'متوسط ' + ok.length + ' مصادر';
+    return true;
+  }
+
+  // احتياط: fawazahmed0 عبر jsdelivr
   try { if (await tryFawaz('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.min.json', 'fawazahmed0-cdn')) return true; } catch {}
 
-  // API 4: Open Exchange Rates
+  // احتياط أخير: Frankfurter — البنك المركزي الأوروبي (ECB)
   try {
-    const r = await fetch('https://open.er-api.com/v6/latest/EUR');
-    if (!r.ok) throw 0;
-    const d = await r.json();
-    const p = pick(d.rates || {});
-    if (p) { rates = p; rDate = new Date().toISOString().slice(0,10); rSource='open.er-api'; return true; }
-  } catch {}
-
-  // API 5: Frankfurter — البنك المركزي الأوروبي (ECB)
-  try {
-    const r = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=' + KEYS.join(','));
-    if (!r.ok) throw 0;
-    const d = await r.json();
+    const d = await fetchJson('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=' + KEYS.join(','));
     const p = pick(d.rates || {});
     if (p) { rates = p; rDate = d.date || new Date().toISOString().slice(0,10); rSource='Frankfurter (ECB)'; return true; }
   } catch {}
