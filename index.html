@@ -144,7 +144,7 @@ footer{text-align:center;color:var(--muted2);font-size:.73rem;margin-top:32px;pa
 
 <div class="stats">
   <div class="stat"><div class="sv">19%</div><div class="sl">ضريبة أوروبا VAT</div></div>
-  <div class="stat"><div class="sv">4,000 €</div><div class="sl">تكلفة الشحن</div></div>
+  <div class="stat"><div class="sv">4,400 €</div><div class="sl">تكلفة الشحن</div></div>
   <div class="cust-stat">
     <div class="cust-val" id="custDisplay">10.5%</div>
     <div class="cust-lbl">جمارك وضرائب</div>
@@ -161,7 +161,7 @@ footer{text-align:center;color:var(--muted2);font-size:.73rem;margin-top:32px;pa
   <span class="profit-lbl">💰 هامش الربح (3% من النيتو):</span>
   <div class="profit-btns">
     <button class="profit-btn" onclick="setProfit(0,this)">بدون ربح</button>
-    <button class="profit-btn on" onclick="setProfit(3,this)">+ 3% ربح</button>
+    <button class="profit-btn on" onclick="setProfit(2,this)">+ 2% ربح</button>
   </div>
 </div>
 
@@ -240,13 +240,13 @@ footer{text-align:center;color:var(--muted2);font-size:.73rem;margin-top:32px;pa
   </div>
 </div>
 
-<footer>WAGEN Exclusive Cars &nbsp;•&nbsp; حاسبة الاستيراد من أوروبا &nbsp;•&nbsp; الشحن 4,000€ &nbsp;•&nbsp; VAT 19%</footer>
+<footer>WAGEN Exclusive Cars &nbsp;•&nbsp; حاسبة الاستيراد من أوروبا &nbsp;•&nbsp; الشحن 4,400€ &nbsp;•&nbsp; VAT 19%</footer>
 </div>
 
 <script>
 // ── Rates — 3 APIs fallback ───────────────────────────────────────────────────
 let CUST_RATE = 0.105;
-let PROFIT_RATE = 0.03;
+let PROFIT_RATE = 0.02;
 let lastResults = [null, null, null];
 
 function setCust(val, btn) {
@@ -255,7 +255,7 @@ function setCust(val, btn) {
   document.querySelectorAll('.cust-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   document.querySelector('footer').textContent =
-    `حاسبة استيراد السيارات • الشحن ثابت 4,000€ • الجمارك ${val}% • VAT أوروبا 19%`;
+    `حاسبة استيراد السيارات • الشحن ثابت 4,400€ • الجمارك ${val}% • VAT أوروبا 19%`;
 }
 
 function setProfit(val, btn) {
@@ -418,7 +418,7 @@ async function calc(m) {
   }
   await getRates();
 
-  const SHIP=4000, VAT=0.19, CUST=CUST_RATE, AGENT=0.10;
+  const SHIP=4400, VAT=0.19, CUST=CUST_RATE, AGENT=0.10;
   const omrRate = rates['OMR'] || 0.45138579;
   const expenses = 300 / omrRate; // 300 ريال عماني بالـ يورو
   let html='', total=0, neto=0;
